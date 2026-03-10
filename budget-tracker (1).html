@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Understory · Campaign Budget Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #F9FAFB;
+    --surface:  #FFFFFF;
+    --border:   #E5E7EB;
+    --border2:  #D1D5DB;
+    --text:     #111827;
+    --muted:    #9CA3AF;
+    --muted2:   #6B7280;
+    --accent:   #6366F1;
+    --accent2:  #4F46E5;
+    --green:    #16A34A;
+    --amber:    #D97706;
+    --red:      #DC2626;
+    --li:       #1D4ED8;
+    --meta:     #6D28D9;
+    --reddit:   #C2410C;
+    --radius:   12px;
+    --card-radius: 14px;
+    --shadow:   0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Manrope', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 28px; }
+
+  header {
+    padding: 44px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .brand {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .12em;
+    margin-bottom: 10px;
+  }
+
+  .brand-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+
+  h1 {
+    font-family: 'Manrope', sans-serif;
+    font-size: clamp(20px, 2.5vw, 28px);
+    font-weight: 600; letter-spacing: -.02em;
+    color: var(--text); margin-bottom: 6px;
+  }
+
+  .date-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--muted); margin-top: 4px;
+  }
+
+  .config-banner {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 22px;
+    margin-bottom: 24px; display: flex; gap: 14px;
+    align-items: flex-end; flex-wrap: wrap; box-shadow: var(--shadow);
+  }
+
+  .config-banner label {
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .1em;
+    color: var(--muted); display: block; margin-bottom: 5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .config-banner input {
+    background: var(--bg); border: 1px solid var(--border2);
+    border-radius: 8px; color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    padding: 8px 12px; width: 400px; max-width: 100%;
+    outline: none; transition: border-color .2s;
+  }
+  .config-banner input:focus { border-color: var(--accent); }
+
+  .btn-load {
+    padding: 9px 20px; border-radius: 8px;
+    background: var(--accent); border: none;
+    color: #fff; font-weight: 600; font-size: 13px;
+    cursor: pointer; font-family: 'Manrope', sans-serif;
+    transition: background .2s; white-space: nowrap;
+  }
+  .btn-load:hover { background: var(--accent2); }
+
+  #statusMsg { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); align-self: center; }
+
+  .summary {
+    display: flex; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; margin-bottom: 22px; box-shadow: var(--shadow);
+  }
+
+  .summary-item { flex: 1; padding: 16px 22px; border-right: 1px solid var(--border); min-width: 110px; }
+  .summary-item:last-child { border-right: none; }
+
+  .summary-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--muted); margin-bottom: 5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .summary-val { font-size: 19px; font-weight: 600; letter-spacing: -.02em; }
+  .summary-bar-wrap { flex: 2; padding: 16px 22px; display: flex; flex-direction: column; justify-content: center; }
+
+  .views { display: flex; gap: 6px; margin-bottom: 22px; flex-wrap: wrap; }
+
+  .view-btn {
+    padding: 7px 20px; border-radius: 99px;
+    font-size: 13px; font-weight: 500; font-family: 'Manrope', sans-serif;
+    cursor: pointer; border: 1px solid var(--border);
+    background: var(--surface); color: var(--muted2);
+    transition: all .15s; outline: none; box-shadow: var(--shadow);
+  }
+  .view-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .view-btn.active { background: #EEF2FF; border-color: var(--accent); color: var(--accent2); font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 14px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--card-radius); padding: 22px 24px;
+    box-shadow: var(--shadow); transition: box-shadow .2s, transform .15s;
+    animation: fadeUp .35s both;
+  }
+  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-head { margin-bottom: 18px; }
+  .client-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 5px; letter-spacing: -.01em; }
+
+  .platform-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 9px; border-radius: 6px;
+  }
+  .platform-tag.LinkedIn { color: var(--li);     background: #EFF6FF; }
+  .platform-tag.Meta     { color: var(--meta);   background: #F5F3FF; }
+  .platform-tag.Reddit   { color: var(--reddit); background: #FFF7ED; }
+  .platform-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  .bar-track { height: 5px; background: #F3F4F6; border-radius: 99px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 99px; transition: width .7s cubic-bezier(.22,1,.36,1); }
+
+  .spent-main { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+  .big-num    { font-size: 26px; font-weight: 700; letter-spacing: -.03em; }
+  .pct-badge  { font-size: 14px; font-weight: 600; }
+  .sub-text   { font-size: 12px; color: var(--muted); margin-top: 7px; }
+
+  .pacing-row   { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+  .pacing-bar-wrap { position: relative; }
+  .pacing-marker {
+    position: absolute; top: -2px; width: 2px; height: 9px;
+    background: var(--accent); border-radius: 2px;
+    transform: translateX(-50%); z-index: 2;
+  }
+  .pacing-status {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 3px 9px; border-radius: 6px; margin-top: 10px;
+  }
+
+  .leads-grid { display: flex; gap: 18px; }
+  .leads-col  { flex: 1; }
+  .col-label  {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--muted); margin-bottom: 5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .leads-num  { font-size: 26px; font-weight: 700; letter-spacing: -.03em; }
+  .leads-goal { font-size: 14px; font-weight: 400; color: var(--muted); margin-left: 4px; }
+  .cpl-target { font-size: 11px; color: var(--muted); margin-top: 5px; }
+
+  .loader {
+    text-align: center; padding: 80px 0;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted);
+  }
+  .spinner {
+    width: 28px; height: 28px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin .8s linear infinite; margin: 0 auto 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .last-updated {
+    text-align: center; margin-top: 32px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);
+  }
+
+  @media (max-width: 600px) {
+    .summary { flex-direction: column; }
+    .summary-item { border-right: none; border-bottom: 1px solid var(--border); }
+    .summary-item:last-child { border-bottom: none; }
+    .config-banner input { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand"><span class="brand-dot"></span>Understory Agency</div>
+    <h1>Campaign Budget Tracker</h1>
+    <p class="date-badge" id="dateBadge"></p>
+  </header>
+
+  <div class="config-banner">
+    <div style="flex:1;min-width:220px">
+      <label>Google Sheets CSV URL</label>
+      <input type="text" id="sheetUrl" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AtCjsHChxZGZ-Lc1o91MO9LQ1tcuq0k6MoZrZwn9goGKbG9WvhVlup9OtGmwZ589bvsYCYE-smfy/pub?output=csv"/>
+    </div>
+    <button class="btn-load" onclick="loadFromSheet()">↻ Load Data</button>
+    <div id="statusMsg"></div>
+  </div>
+
+  <div class="summary" id="summaryStrip" style="display:none">
+    <div class="summary-item">
+      <div class="summary-label">Total Budget</div>
+      <div class="summary-val" id="sumBudget" style="color:var(--text)">—</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Total Spent</div>
+      <div class="summary-val" id="sumSpent" style="color:var(--accent)">—</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Remaining</div>
+      <div class="summary-val" id="sumRemaining" style="color:var(--green)">—</div>
+    </div>
+    <div class="summary-bar-wrap">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace;">
+        <span>Overall spend</span><span id="sumPct">—</span>
+      </div>
+      <div class="bar-track" style="height:5px">
+        <div class="bar-fill" id="sumBar" style="background:var(--accent);width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="views">
+    <button class="view-btn active" onclick="setView('spent',this)">Budget Spent</button>
+    <button class="view-btn" onclick="setView('pacing',this)">Pacing</button>
+    <button class="view-btn" onclick="setView('leads',this)">Leads &amp; CPL</button>
+  </div>
+
+  <div id="loader" class="loader" style="display:none">
+    <div class="spinner"></div>Fetching from Google Sheets…
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div id="demoNote" style="text-align:center;padding:60px 20px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2;">
+    Paste your Google Sheets CSV URL above and click <strong style="color:var(--muted2)">Load Data</strong>.<br>
+    <a href="#" onclick="loadDemo();return false;" style="color:var(--accent);text-decoration:none;">Load demo data to preview</a>
+  </div>
+
+  <div class="last-updated" id="lastUpdated"></div>
+</div>
+
+<script>
+const now         = new Date();
+const dayOfMonth  = now.getDate();
+const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+const pctElapsed  = dayOfMonth / daysInMonth;
+const MONTHS      = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+document.getElementById('dateBadge').textContent =
+  `Day ${dayOfMonth} of ${daysInMonth} · ${MONTHS[now.getMonth()]} ${now.getFullYear()} · ${Math.round(pctElapsed*100)}% through the month`;
+
+let currentView = 'spent';
+let clients     = [];
+
+const fmt  = n => n==null?'—':'$'+Number(n).toLocaleString('en-US',{maximumFractionDigits:0});
+const fmt2 = n => n==null?'—':'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct  = (a,b) => b?Math.min(Math.round((a/b)*100),100):0;
+
+function parseCSV(text) {
+  const lines  = text.trim().split('\n');
+  const header = lines[0].split(',').map(h=>h.trim().replace(/"/g,'').toLowerCase());
+  return lines.slice(1).map(line => {
+    const vals = line.match(/(".*?"|[^,]+|(?<=,)(?=,)|^(?=,)|(?<=,)$)/g)||[];
+    const obj  = {};
+    header.forEach((h,i)=>{
+      const v=(vals[i]||'').replace(/"/g,'').trim();
+      obj[h]=v===''||v==='null'||v==='#DIV/0!'?null:isNaN(v)?v:Number(v);
+    });
+    return obj;
+  }).filter(r=>r.client);
+}
+
+async function loadFromSheet() {
+  const url = document.getElementById('sheetUrl').value.trim();
+  if (!url) { setStatus('⚠ Please paste your Sheet URL first','#D97706'); return; }
+  document.getElementById('loader').style.display  = 'block';
+  document.getElementById('grid').innerHTML        = '';
+  document.getElementById('demoNote').style.display= 'none';
+  document.getElementById('summaryStrip').style.display='none';
+  setStatus('Fetching…','var(--muted)');
+  try {
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    clients    = parseCSV(text);
+    if (!clients.length) throw new Error('No rows found — check column headers');
+    renderAll();
+    setStatus(`✓ ${clients.length} accounts loaded`,'var(--green)');
+    document.getElementById('lastUpdated').textContent=`Last fetched: ${new Date().toLocaleTimeString()}`;
+  } catch(e) {
+    setStatus(`✗ ${e.message}`,'var(--red)');
+    document.getElementById('loader').style.display='none';
+    document.getElementById('demoNote').style.display='block';
+  }
+}
+
+function loadDemo() {
+  clients = [
+    {client:'PlayerZero',platform:'LinkedIn',budget:10000,spent:1478, leads:0,   lead_goal:null,cpl_goal:null},
+    {client:'PlayerZero',platform:'Reddit',  budget:3500, spent:999,  leads:null,lead_goal:null,cpl_goal:null},
+    {client:'Runway',    platform:'LinkedIn',budget:25000,spent:6301, leads:15,  lead_goal:null,cpl_goal:300},
+    {client:'Runway',    platform:'Meta',    budget:25000,spent:5716, leads:26,  lead_goal:null,cpl_goal:250},
+    {client:'Optiversal',platform:'LinkedIn',budget:8000, spent:1836, leads:2,   lead_goal:null,cpl_goal:null},
+    {client:'Outtake',   platform:'LinkedIn',budget:10000,spent:914,  leads:0,   lead_goal:18,  cpl_goal:null},
+    {client:'Doppel',    platform:'Reddit',  budget:5000, spent:1200, leads:4,   lead_goal:10,  cpl_goal:250},
+  ];
+  document.getElementById('demoNote').style.display='none';
+  setStatus('Demo data loaded','var(--muted)');
+  renderAll();
+}
+
+function renderAll() {
+  document.getElementById('loader').style.display='none';
+  updateSummary(); renderCards();
+}
+
+function updateSummary() {
+  const tb=clients.reduce((s,c)=>s+(c.budget||0),0);
+  const ts=clients.reduce((s,c)=>s+(c.spent||0),0);
+  document.getElementById('sumBudget').textContent   =fmt(tb);
+  document.getElementById('sumSpent').textContent    =fmt(ts);
+  document.getElementById('sumRemaining').textContent=fmt(tb-ts);
+  document.getElementById('sumPct').textContent      =pct(ts,tb)+'%';
+  document.getElementById('sumBar').style.width      =pct(ts,tb)+'%';
+  document.getElementById('summaryStrip').style.display='flex';
+}
+
+function renderCards() {
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  clients.forEach((c,i)=>grid.appendChild(buildCard(c,currentView,i)));
+}
+
+function buildCard(c,view,idx) {
+  const div=document.createElement('div');
+  div.className='card';
+  div.dataset.platform=c.platform;
+  div.style.animationDelay=(idx*.05)+'s';
+
+  const spentPct     =pct(c.spent,c.budget);
+  const expectedPct  =Math.round(pctElapsed*100);
+  const expectedSpend=c.budget*pctElapsed;
+  const cpl          =c.leads&&c.spent?c.spent/c.leads:null;
+  const cplOk        =c.cpl_goal&&cpl?cpl<=c.cpl_goal:null;
+
+  const spentColor=spentPct>90?'var(--red)':spentPct>70?'var(--amber)':'var(--accent)';
+
+  const pacingDiff    =spentPct-expectedPct;
+  const isPacingBehind=pacingDiff<-5;
+  const isPacingAhead =pacingDiff>5;
+  const pacingColor   =isPacingBehind?'var(--accent)':isPacingAhead?'var(--amber)':'var(--green)';
+  const pacingLabel   =isPacingBehind?`↓ ${Math.abs(pacingDiff)}% under pace`:isPacingAhead?`↑ ${pacingDiff}% over pace`:'✓ On pace';
+  const pacingBg      =isPacingBehind?'#EEF2FF':isPacingAhead?'#FFFBEB':'#F0FDF4';
+
+  const head=`
+    <div class="card-head">
+      <div class="client-name">${c.client}</div>
+      <span class="platform-tag ${c.platform}"><span class="platform-dot"></span>${c.platform}</span>
+    </div>`;
+
+  let body='';
+
+  if(view==='spent'){
+    body=`
+      <div class="spent-main">
+        <span class="big-num" style="color:var(--text)">${fmt(c.spent)}</span>
+        <span class="pct-badge" style="color:${spentColor}">${spentPct}%</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:7px">of ${fmt(c.budget)} budget</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${spentPct}%;background:${spentColor}"></div></div>
+      <div class="sub-text">${fmt(c.budget-c.spent)} remaining</div>`;
+  } else if(view==='pacing'){
+    body=`
+      <div class="pacing-row">
+        <div>
+          <span class="big-num" style="color:var(--text);font-size:22px">${fmt(c.spent)}</span>
+          <span style="font-size:12px;color:var(--muted);margin-left:4px">spent</span>
+        </div>
+        <div style="text-align:right">
+          <span style="font-size:13px;font-weight:600;color:var(--accent)">${fmt(expectedSpend)}</span>
+          <div style="font-size:11px;color:var(--muted)">expected day ${dayOfMonth}</div>
+        </div>
+      </div>
+      <div class="pacing-bar-wrap">
+        <div class="pacing-marker" style="left:${expectedPct}%"></div>
+        <div class="bar-track" style="height:6px"><div class="bar-fill" style="width:${spentPct}%;background:${pacingColor}"></div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;font-family:'JetBrains Mono',monospace;">
+        <span>Spent <span style="color:${pacingColor};font-weight:600">${spentPct}%</span></span>
+        <span style="color:var(--accent)">Expected ${expectedPct}%</span>
+      </div>
+      <div class="pacing-status" style="color:${pacingColor};background:${pacingBg}">${pacingLabel}</div>`;
+  } else if(view==='leads'){
+    const leadsBarPct=c.lead_goal?pct(c.leads||0,c.lead_goal):0;
+    const cplColor=cplOk===true?'var(--green)':cplOk===false?'var(--red)':'var(--text)';
+    const cplNote=cplOk===true?'<span style="color:var(--green)"> ✓</span>':cplOk===false?'<span style="color:var(--red)"> ↑ over</span>':'';
+    body=`
+      <div class="leads-grid">
+        <div class="leads-col">
+          <div class="col-label">Leads</div>
+          <div>
+            <span class="leads-num" style="color:var(--text)">${c.leads??'—'}</span>
+            ${c.lead_goal!=null?`<span class="leads-goal">/ ${c.lead_goal}</span>`:''}
+          </div>
+          ${c.lead_goal?`<div class="bar-track" style="margin-top:8px"><div class="bar-fill" style="width:${leadsBarPct}%;background:var(--accent)"></div></div>`:''}
+        </div>
+        <div class="leads-col">
+          <div class="col-label">CPL</div>
+          <div class="leads-num" style="color:${cplColor}">${fmt2(cpl)}</div>
+          ${c.cpl_goal?`<div class="cpl-target">Goal: <span style="color:var(--accent);font-weight:600">${fmt(c.cpl_goal)}</span>${cplNote}</div>`:'<div class="cpl-target">No goal set</div>'}
+        </div>
+      </div>`;
+  }
+
+  div.innerHTML=head+body;
+  return div;
+}
+
+function setView(v,btn){
+  currentView=v;
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(clients.length) renderCards();
+}
+
+function setStatus(msg,color){
+  const el=document.getElementById('statusMsg');
+  el.textContent=msg; el.style.color=color;
+}
+
+setInterval(()=>{
+  const url=document.getElementById('sheetUrl').value.trim();
+  if(url&&clients.length) loadFromSheet();
+},30*60*1000);
+window.addEventListener("load", () => { if(document.getElementById("sheetUrl").value) loadFromSheet(); });
+</script>
+</body>
+</html>
