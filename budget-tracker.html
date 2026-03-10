@@ -232,7 +232,7 @@
   <div class="config-banner">
     <div style="flex:1;min-width:220px">
       <label>Google Sheets CSV URL</label>
-      <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/YOUR_ID/gviz/tq?tqx=out:csv&sheet=Data"/>
+      <input type="text" id="sheetUrl" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vT1AtCjsHChxZGZ-Lc1o91MO9LQ1tcuq0k6MoZrZwn9goGKbG9WvhVlup9OtGmwZ589bvsYCYE-smfy/pub?output=csv"/>
     </div>
     <button class="btn-load" onclick="loadFromSheet()">↻ Load Data</button>
     <div id="statusMsg"></div>
@@ -474,6 +474,7 @@ setInterval(()=>{
   const url=document.getElementById('sheetUrl').value.trim();
   if(url&&clients.length) loadFromSheet();
 },30*60*1000);
+window.addEventListener("load", () => { if(document.getElementById("sheetUrl").value) loadFromSheet(); });
 </script>
 </body>
 </html>
